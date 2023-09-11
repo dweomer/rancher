@@ -19,6 +19,13 @@ RUN zypper -n install gcc binutils glibc-devel-static ca-certificates git-core w
 # use containerd from k3s image, not from bci
 RUN zypper install -y -f docker && rpm -e --nodeps --noscripts containerd
 
+# use go to install go (because the bci image lacks the goboring symbols)
+RUN go install golang.org/dl/go1.19.12@latest
+RUN HOME=/usr go1.19.12 download
+RUN zypper -n remove go1.19
+RUN ln -vs /usr/sdk/go1.19.12/bin/go* /usr/bin/
+
+
 RUN curl -sLf https://github.com/rancher/machine/releases/download/${CATTLE_MACHINE_VERSION}/rancher-machine-${ARCH}.tar.gz | tar xvzf - -C /usr/bin
 RUN if [ "${ARCH}" != "s390x" ]; then \
         curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${K3D_VERSION} bash; \
